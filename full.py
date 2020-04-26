@@ -1,29 +1,69 @@
-# take sukodu board
-# for easy, remove n = ? numbers
-# for medium, remove n = ? numbers
-# for hard, remove n = ? numbers
-
-# remove random cell, check:
-    # can it still be solved?
-    # if yes, continue removing
-    # if no, put number back in
-
 import argparse
 from z3 import *
 import random as rd
 import itertools
+
+def generate_board():
+    number_list = [Int('n%i'%i) for i in range(0,81)]
+
+    s = Solver()
+    for x in number_list:
+        s.add(And(x >= 1, x <= 9))
+
+    for x in range(0,9):
+        row_number = [0+9*x for x in range(0,9)]
+
+    column_number = range(0,9)
+    square_number = [0,3,6,27,30,33,54,57,60]
+
+    rows = [[] for x in range(0,9)]
+    columns = [[] for y in range(0,9)]
+    squares = [[] for z in range(0,9)]
+
+    for x in column_number:
+        for y in range(0,9):
+            columns[x].append(number_list[x+9*y])
+
+    row = 0
+    for x in row_number:
+        for y in range(0,9):
+            rows[row].append(number_list[x+y])
+        row += 1
+
+    square = 0
+    for x in square_number:
+        for y in [0,9,18]:
+            squares[square].append(number_list[x + y])
+            squares[square].append(number_list[x + 1 + y])
+            squares[square].append(number_list[x + 2 + y])
+        square += 1
+
+    for x in range(0,9):
+        for y in range(0,9):
+            for z in range(0,9):
+                if z != y:
+                    s.add(columns[x][z] != columns[x][y])
+                    s.add(rows[x][z] != rows[x][y])
+                    s.add(squares[x][z] != squares[x][y])
+
+    results = s.check()
+    if results == sat:
+        print("Is satisfiable")
+        m = s.model()
+        for x in range(0,9):
+            print(', '.join(str(m[rows[x][y]]) for y in range(0,9)))
+        board = [ [ m.evaluate(rows[i][j]) for j in range(9) ] for i in range(9) ]
+    elif results == unsat:
+        print("Constraints are unsatisfiable")
+    else:
+        print("Unable to Solve")
+    return board
 
 def solve_sudoku(grid):
     s = Solver()
 
     solve_grid = []
     solve_grid = [[Int('v%i%i' % (j, k)) for k in range(1,10)] for j in range(1,10)]
-    #print(solve_grid)
-    #number_list = [Int('n%i'%i) for i in range(0,81)]
-
-    #solve_grid = []
-    #for j in range(9):
-        #solve_grid.append([Int('v1%i', % j+1), Int(), Int(), Int(), Int(), Int(), Int(), Int(), Int()])
 
     for r in range(9):
         for c in range(9):
@@ -38,8 +78,6 @@ def solve_sudoku(grid):
         s.add(Distinct(solve_grid[r]))
     
     for c in range(9):
-        #for r in range(9):
-            #s.add(Distinct(solve_grid[r][c]))
         s.add(Distinct([solve_grid[r][c] for r in range(9)]))
 
     for x in range(0, 9, 3):
@@ -50,14 +88,11 @@ def solve_sudoku(grid):
     while s.check() == sat:
         cntr += 1
         m = s.model()
-        r = [ [ m.evaluate(solve_grid[i][j]) for j in range(9) ] for i in range(9) ]
-        #print(r)
-        #s.add(Not(And(r == m[r])))
         for j in range(9):
             for k in range(9):
                 s.add(Not(And(solve_grid[j][k] == m[solve_grid[j][k]])))
-        #s.add(Not(And([[solve_grid[j][k] == m[solve_grid[j][k]] for k in range (9)] for j in range(9)])))
     return cntr
+
 
 # command line input from player
 if __name__ == '__main__':
@@ -79,31 +114,25 @@ if level == 2:
 if level == 3:
     num_remove = 27
 
-# make the numbers 0-9 Reals
+# make the numbers 0-9 ints
 n = [Int('i') for i in range(10)]
 # seed for random number generator
 rd.seed(None)
 
-#test_grid for working through code---this will be generated grid in final
-test_grid = []
-test_grid.append([1, 7, 9, 8, 3, 5, 2, 6, 4])
-test_grid.append([4, 2, 5, 6, 1, 9, 7, 8, 3])
-test_grid.append([8, 3, 6, 2, 7, 4, 5, 1, 9])
-test_grid.append([6, 5, 1, 9, 4, 2, 3, 7, 8])
-test_grid.append([3, 4, 2, 7, 5, 8, 6, 9, 1])
-test_grid.append([7, 9, 8, 3, 6, 1, 4, 2, 5])
-test_grid.append([2, 1, 3, 4, 8, 6, 9, 5, 7])
-test_grid.append([5, 6, 7, 1, 9, 3, 8, 4, 2])
-test_grid.append([9, 8, 4, 5, 2, 7, 1, 3, 6])
+grid = generate_board()
+#print(grid)
+
+#for j in range(9):
+#    for k in range(9):
+#        grid[j][k] = int(grid[j][k])
 
 # work with copy so if player solving integrated origional grid can be used to check
 grid_copy = []
 for r in range(0,9):
     grid_copy.append([])
     for c in range(0,9):
-        grid_copy[r].append(test_grid[r][c])
+        grid_copy[r].append(grid[r][c])
 
-# take numbers out until level hits 0
 while num_remove > 0:
     num_remove -= 1
 # choose row/column that has not been removed already
@@ -117,19 +146,9 @@ while num_remove > 0:
 
 # solve sudoku and see how many solutions exist
     sols = solve_sudoku(grid_copy)
-    print(sols)
 # if none/more than one solution exist, replace removed number
     if sols != 1:
-        grid_copy[r][c] = test_grid[r][c]
+        grid_copy[r][c] = grid[r][c]
         num_remove += 1
-    #print(num_remove)
 
-#print(test_grid)
-#print(grid_copy)
-
-
-
-
-
-
-
+#print(', '.join(str(grid_copy[x][y]) for y in range(0,9)))
