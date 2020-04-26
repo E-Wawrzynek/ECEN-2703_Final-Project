@@ -100,7 +100,7 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser(
         description='Sudoku board generator',
         formatter_class=argparse.ArgumentDefaultsHelpFormatter)
-    parser.add_argument('-d', '--difficulty', help='level of board difficulty (1, 2, or 3)',
+    parser.add_argument('-d', '--difficulty', help='level of board difficulty (0, 1, 2, or 3)',
                         default=1, type=int)
     args = parser.parse_args()
 
@@ -108,11 +108,11 @@ level = args.difficulty
 if level == 0:
     num_remove = 0
 if level == 1:
-    num_remove = 18
-if level == 2:
     num_remove = 27
-if level == 3:
+if level == 2:
     num_remove = 36
+if level == 3:
+    num_remove = 45
 
 n = [Int('i') for i in range(10)]
 rd.seed(None)
