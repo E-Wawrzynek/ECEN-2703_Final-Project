@@ -16,7 +16,14 @@ import itertools
 def solve_sudoku(grid):
     s = Solver()
 
-    solve_grid = [[Real('v%i%i' % (i+1) (j+1)) for i in range(9)] for j in range(9)]
+    solve_grid = []
+    solve_grid = [[Int('v%i%i' % (j, k)) for k in range(1,10)] for j in range(1,10)]
+    #print(solve_grid)
+    #number_list = [Int('n%i'%i) for i in range(0,81)]
+
+    #solve_grid = []
+    #for j in range(9):
+        #solve_grid.append([Int('v1%i', % j+1), Int(), Int(), Int(), Int(), Int(), Int(), Int(), Int()])
 
     for r in range(9):
         for c in range(9):
@@ -31,17 +38,23 @@ def solve_sudoku(grid):
         s.add(Distinct(solve_grid[r]))
     
     for c in range(9):
-        s.add(Distinct(solve_grid[r][c]) for r in range(9))
+        #for r in range(9):
+            #s.add(Distinct(solve_grid[r][c]))
+        s.add(Distinct([solve_grid[r][c] for r in range(9)]))
 
     for x in range(0, 9, 3):
         for y in range(0, 9, 3):
-            s.add(Distinct(solve_grid[j][k]) for j, k in itertools.product(range(3), range(3)))
+            s.add(Distinct([solve_grid[j][k] for j, k in itertools.product(range(3), range(3))]))
 
     cntr = 0
     while s.check() == sat:
         cntr += 1
         m = s.model()
-        s.add()
+        r = [ [ m.evaluate(solve_grid[i][j]) for j in range(9) ]
+          for i in range(9) ]
+        print(r)
+        #s.add(Not(And(r == m[r])))
+        s.add(Not(And([[solve_grid[j][k] == m[solve_grid[j][k]] for k in range (9)] for j in range(9)])))
     return cntr
 
 # command line input from player
@@ -55,6 +68,8 @@ if __name__ == '__main__':
 
 # how many numbers removed for level of difficulty (might ammend later)
 level = args.difficulty
+if level == 0:
+    num_remove = 0
 if level == 1:
     num_remove = 9
 if level == 2:
@@ -63,7 +78,7 @@ if level == 3:
     num_remove = 27
 
 # make the numbers 0-9 Reals
-n = [Real('i') for i in range(10)]
+n = [Int('i') for i in range(10)]
 # seed for random number generator
 rd.seed(None)
 
@@ -87,8 +102,8 @@ for r in range(0,9):
         grid_copy[r].append(test_grid[r][c])
 
 # take numbers out until level hits 0
-while level > 0:
-    level -= 1
+while num_remove > 0:
+    num_remove -= 1
 # choose row/column that has not been removed already
     r = rd.randint(0,8)
     c = rd.randint(0,8)
@@ -106,7 +121,8 @@ while level > 0:
         grid_copy[r][c] = test_grid[r][c]
         level += 1
 
-# 
+print(test_grid)
+print(grid_copy)
 
 
 
