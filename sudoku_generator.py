@@ -48,7 +48,7 @@ def generate_board():
 
     results = s.check()
     if results == sat:
-        print("Is satisfiable")
+        print("Full Board")
         m = s.model()
         for x in range(0,9):
             print(', '.join(str(m[rows[x][y]]) for y in range(0,9)))
@@ -94,7 +94,6 @@ def solve_sudoku(grid):
     return cntr
 
 
-# command line input from player
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(
         description='Sudoku board generator',
@@ -103,30 +102,21 @@ if __name__ == '__main__':
                         default=1, type=int)
     args = parser.parse_args()
 
-# how many numbers removed for level of difficulty (might ammend later)
 level = args.difficulty
 if level == 0:
     num_remove = 0
 if level == 1:
-    num_remove = 9
-if level == 2:
     num_remove = 18
-if level == 3:
+if level == 2:
     num_remove = 27
+if level == 3:
+    num_remove = 36
 
-# make the numbers 0-9 ints
 n = [Int('i') for i in range(10)]
-# seed for random number generator
 rd.seed(None)
 
 grid = generate_board()
-#print(grid)
 
-#for j in range(9):
-#    for k in range(9):
-#        grid[j][k] = int(grid[j][k])
-
-# work with copy so if player solving integrated origional grid can be used to check
 grid_copy = []
 for r in range(0,9):
     grid_copy.append([])
@@ -135,20 +125,23 @@ for r in range(0,9):
 
 while num_remove > 0:
     num_remove -= 1
-# choose row/column that has not been removed already
     r = rd.randint(0,8)
     c = rd.randint(0,8)
     while grid_copy[r][c] == 0:
         r = rd.randint(0,8)
         c = rd.randint(0,8)
-# put zero in place of removed number
     grid_copy[r][c] = 0
 
-# solve sudoku and see how many solutions exist
     sols = solve_sudoku(grid_copy)
-# if none/more than one solution exist, replace removed number
     if sols != 1:
         grid_copy[r][c] = grid[r][c]
         num_remove += 1
 
-#print(', '.join(str(grid_copy[x][y]) for y in range(0,9)))
+for x in range(9):
+    for y in range(9):
+        if type(grid_copy[x][y]) == type(0):
+            grid_copy[x][y] = '_'
+
+print("Player's Board")
+for x in range(0,9):
+        print(', '.join(str(grid_copy[x][y]) for y in range(0,9)))
