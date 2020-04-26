@@ -45,6 +45,8 @@ def generate_board():
                     s.add(columns[x][z] != columns[x][y])
                     s.add(rows[x][z] != rows[x][y])
                     s.add(squares[x][z] != squares[x][y])
+                    
+    s.add(rows[0][0] == rd.randint(1,9))
 
     results = s.check()
     if results == sat:
