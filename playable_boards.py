@@ -11,9 +11,38 @@
 import argparse
 from z3 import *
 import random as rd
+import itertools
 
 def solve_sudoku(grid):
+    s = Solver()
 
+    solve_grid = [[Real('v%i%i' % (i+1) (j+1)) for i in range(9)] for j in range(9)]
+
+    for r in range(9):
+        for c in range(9):
+            if grid[r][c] != 0:
+                s.add(solve_grid[r][c] == grid[r][c])
+
+    for r in range(9):
+        for c in range(9):
+            s.add(And(1 <= solve_grid[r][c], solve_grid[r][c] <= 9))
+    
+    for r in range(9):
+        s.add(Distinct(solve_grid[r]))
+    
+    for c in range(9):
+        s.add(Distinct(solve_grid[r][c]) for r in range(9))
+
+    for x in range(0, 9, 3):
+        for y in range(0, 9, 3):
+            s.add(Distinct(solve_grid[j][k]) for j, k in itertools.product(range(3), range(3)))
+
+    cntr = 0
+    while s.check() == sat:
+        cntr += 1
+        m = s.model()
+        s.add()
+    return cntr
 
 # command line input from player
 if __name__ == '__main__':
@@ -70,11 +99,10 @@ while level > 0:
     grid_copy[r][c] = 0
 
 # solve sudoku and see how many solutions exist
-    sol_cntr = 0
-    solve_sudoku(grid_copy)
+    sols = solve_sudoku(grid_copy)
 
 # if none/more than one solution exist, replace removed number
-    if sol_cntr != 1:
+    if sols != 1:
         grid_copy[r][c] = test_grid[r][c]
         level += 1
 
