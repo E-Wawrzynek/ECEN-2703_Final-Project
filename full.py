@@ -67,7 +67,7 @@ def solve_sudoku(grid):
 
     for r in range(9):
         for c in range(9):
-            if grid[r][c] != 0:
+            if type(grid[r][c]) != type(0):
                 s.add(solve_grid[r][c] == grid[r][c])
 
     for r in range(9):
