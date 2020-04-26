@@ -52,9 +52,11 @@ def solve_sudoku(grid):
         m = s.model()
         r = [ [ m.evaluate(solve_grid[i][j]) for j in range(9) ]
           for i in range(9) ]
-        print(r)
         #s.add(Not(And(r == m[r])))
-        s.add(Not(And([[solve_grid[j][k] == m[solve_grid[j][k]] for k in range (9)] for j in range(9)])))
+        for j in range(9):
+            for k in range(9):
+                s.add(Not(And(solve_grid[j][k] == m[solve_grid[j][k]])))
+        #s.add(Not(And([[solve_grid[j][k] == m[solve_grid[j][k]] for k in range (9)] for j in range(9)])))
     return cntr
 
 # command line input from player
@@ -115,13 +117,13 @@ while num_remove > 0:
 
 # solve sudoku and see how many solutions exist
     sols = solve_sudoku(grid_copy)
-
+    print(sols)
 # if none/more than one solution exist, replace removed number
     if sols != 1:
         grid_copy[r][c] = test_grid[r][c]
         level += 1
 
-print(test_grid)
+#print(test_grid)
 print(grid_copy)
 
 
