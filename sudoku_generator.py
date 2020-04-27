@@ -1,3 +1,6 @@
+# Suduko Generator, Final Project ECEN 2703
+# Ella Wawrzynek & XuTao Ho
+
 import argparse
 from z3 import *
 import random as rd
